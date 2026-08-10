@@ -156,25 +156,6 @@ function buildTrainingDeck(pool: ScenarioId[], ranges: RangeStore): TrainingQues
   return shuffle(questions)
 }
 
-function parseRangeInput(text: string) {
-  const validHands = emptyRange()
-  const hands = new Set<string>()
-  const invalid: string[] = []
-  const tokens = text.split(/[,，、;；\s]+/).map(t => t.trim()).filter(Boolean)
-
-  for (const token of tokens) {
-    const expanded = expandToken(token)
-    const validExpanded = expanded.filter(hand => hand in validHands)
-    if (!expanded.length || validExpanded.length !== expanded.length) {
-      invalid.push(token)
-      continue
-    }
-    validExpanded.forEach(hand => hands.add(hand))
-  }
-
-  return { hands: [...hands], invalid }
-}
-
 function App() {
   const [page, setPage] = useState<Page>('train')
   const [ranges, setRanges] = useState<RangeStore>(() => readJSON('pf_ranges_v1', DEFAULT_RANGES))
@@ -399,8 +380,6 @@ function RangesPage({ ranges, updateRanges }: { ranges: RangeStore; updateRanges
     callParsed.hands.forEach(hand => { next[hand] = 'call' })
     updateRanges({ ...ranges, [scenarioId]: next })
     setEditing(false)
-    setBatchOpen(false)
-    resetBatchFields()
   }
 
   const counts: Record<Action, number> = { raise: 0, call: 0, fold: 0 }
@@ -436,26 +415,9 @@ return <section className="page ranges-page">
     </div>
     <div className="panel range-heading">
       <div><strong>{scenario.name}</strong><span className="muted">{range ? '已設定' : '尚未設定'}</span></div>
-      {!range && !batchOpen && <button className="primary compact" onClick={ensure}>建立範圍</button>}
+      {!range && (<button className="primary compact" onClick={ensure}>建立範圍</button>)}
       {range && <div className="legend"><span className="raise-dot">{scenario.kind === 'defend' ? '3-Bet' : '加注'} {counts.raise}</span>{scenario.kind === 'defend' && <span className="call-dot">跟注 {counts.call}</span>}<span className="fold-dot">棄牌 {counts.fold}</span></div>}
     </div>
-
-    {batchOpen && <div className="panel batch-editor">
-      <div className="batch-copy">
-        <strong>批次覆蓋 {scenario.name}</strong>
-        <span>支援逗號、空白或換行分隔；可使用 AA-KK、A4s-A2s 這類區間。未輸入的手牌一律設為 Fold。</span>
-      </div>
-      <label className="batch-field">
-        <span>{scenario.kind === 'defend' ? '3-Bet' : 'Raise'}</span>
-        <textarea value={raiseInput} onChange={e => { setRaiseInput(e.target.value); setBatchError('') }} placeholder={scenario.kind === 'defend' ? '例如：AA-KK, AKs, A6s, A4s-A2s, AKo' : '例如：AA-22, AKs-A2s, AKo-ATo'} />
-      </label>
-      {scenario.kind === 'defend' && <label className="batch-field">
-        <span>Call</span>
-        <textarea value={callInput} onChange={e => { setCallInput(e.target.value); setBatchError('') }} placeholder="例如：QQ-22, AQs-A7s, A5s, KQs-K7s" />
-      </label>}
-      {batchError && <div className="batch-error">{batchError}</div>}
-      <button className="primary wide" onClick={applyBatch}>套用並覆蓋此範圍</button>
-    </div>}
 
     <RangeMatrix range={range || emptyRange()} editing={editing} onCell={cycle} scenario={scenario} />
     {editing && <p className="helper">編輯模式：{scenario.kind === 'defend' ? 'Fold → Call → 3-Bet → Fold' : 'Fold → Raise → Fold'}</p>}
