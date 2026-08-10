@@ -15,7 +15,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "noUncheckedSideEffectImports": false
+    "noUncheckedSideEffectImports": ture
   },
   "include": ["src"]
 }
