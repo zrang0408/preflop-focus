@@ -507,7 +507,6 @@ function SettingsPage({ updateRanges, records, updateRecords }: {
     <div className="eyebrow">APP SETTINGS</div><h2>設定</h2>
     <div className="panel setting-row"><div><strong>遊戲類型</strong><span>6-Max 極速現金桌</span></div><b>固定</b></div>
     <div className="panel setting-row"><div><strong>有效籌碼</strong><span>100BB</span></div><b>固定</b></div>
-    <div className="panel setting-row"><div><strong>遊戲類型</strong><span>6-Max 極速現金桌</span></div><b>固定</b>
 </div>
 
 <div className="panel setting-row">
