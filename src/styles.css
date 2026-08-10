@@ -16,7 +16,6 @@ button { color: inherit; }
 .brand-mark { width: 34px; height: 34px; border-radius: 10px; background: #f2f5f1; color: #0a0c10; font-weight: 900; display: grid; place-items: center; letter-spacing: -.04em; }
 h1 { font-size: 15px; margin: 0; letter-spacing: -.01em; }
 .topbar p { font-size: 10px; margin: 3px 0 0; color: #858d9b; }
-.pool-pill { white-space: nowrap; font-size: 10px; color: #8bd9b7; background: #10251c; border: 1px solid #1b4935; border-radius: 999px; padding: 6px 8px; }
 main { width: min(100%, 820px); margin: 0 auto; }
 .page { padding: 28px 18px 28px; }
 .eyebrow { color: #74d8ad; font-size: 10px; letter-spacing: .18em; font-weight: 800; margin-bottom: 8px; }
