@@ -16,6 +16,7 @@ button { color: inherit; }
 .brand-mark { width: 34px; height: 34px; border-radius: 10px; background: #f2f5f1; color: #0a0c10; font-weight: 900; display: grid; place-items: center; letter-spacing: -.04em; }
 h1 { font-size: 15px; margin: 0; letter-spacing: -.01em; }
 .topbar p { font-size: 10px; margin: 3px 0 0; color: #858d9b; }
+.pool-pill { white-space: nowrap; font-size: 10px; color: #8bd9b7; background: #10251c; border: 1px solid #1b4935; border-radius: 999px; padding: 6px 8px; }
 main { width: min(100%, 820px); margin: 0 auto; }
 .page { padding: 28px 18px 28px; }
 .eyebrow { color: #74d8ad; font-size: 10px; letter-spacing: .18em; font-weight: 800; margin-bottom: 8px; }
@@ -71,6 +72,16 @@ h3 { font-size: 15px; }
 .title-row { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
 
 .title-actions { display: flex; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
+.batch-editor { padding: 14px; margin-bottom: 12px; display: grid; gap: 12px; }
+.batch-copy { display: flex; flex-direction: column; gap: 4px; }
+.batch-copy strong { font-size: 13px; }
+.batch-copy span { color: #7f8895; font-size: 10px; line-height: 1.5; }
+.batch-field { display: grid; gap: 6px; }
+.batch-field > span { font-size: 11px; font-weight: 800; color: #aab2bd; }
+.batch-field textarea { width: 100%; min-height: 92px; resize: vertical; border: 1px solid #29313d; border-radius: 11px; padding: 10px 11px; background: #0b0f14; color: #f5f7f8; line-height: 1.5; font-size: 12px; }
+.batch-field textarea:focus { outline: 1px solid #4f9f7d; border-color: #4f9f7d; }
+.batch-field textarea::placeholder { color: #4f5865; }
+.batch-error { border: 1px solid #633039; background: #2c1518; color: #ff9ca4; border-radius: 11px; padding: 10px 11px; font-size: 11px; line-height: 1.45; }
 .scenario-tabs { display: flex; gap: 7px; overflow-x: auto; padding: 14px 0 10px; scrollbar-width: none; }
 .scenario-tabs::-webkit-scrollbar { display: none; }
 .scenario-tabs button { flex: 0 0 auto; border: 1px solid #262c36; background: #11161c; color: #79818e; border-radius: 999px; padding: 8px 10px; font-size: 11px; }
