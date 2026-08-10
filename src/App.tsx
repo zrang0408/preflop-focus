@@ -185,6 +185,7 @@ function App() {
   const updateRecords = (next: TrainingRecord[]) => { setRecords(next); writeJSON('pf_records_v1', next) }
   const updateSettings = (next: Settings) => { setSettings(next); writeJSON('pf_settings_v1', next) }
 
+  //主頁 header頂部 main主內容區 page頁面切換
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -215,10 +216,12 @@ function App() {
   )
 }
 
+//底部按鈕抽成共用
 function NavButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: string; onClick: () => void }) {
   return <button className={active ? 'nav-btn active' : 'nav-btn'} onClick={onClick}><span>{icon}</span><small>{label}</small></button>
 }
 
+//訓練功能
 function TrainingPage({ ranges, settings, updateSettings, records, updateRecords }: {
   ranges: RangeStore
   settings: Settings
@@ -346,114 +349,143 @@ function AnswerButton({ action, selected, expected, onClick, label }: { action: 
   return <button className={cls} onClick={() => onClick(action)}>{label}</button>
 }
 
-function RangesPage({ ranges, updateRanges }: { ranges: RangeStore; updateRanges: (r: RangeStore) => void }) {
-  const [scenarioId, setScenarioId] = useState<ScenarioId>('BB_VS_UTG')
+function RangesPage({
+  ranges,
+  updateRanges,
+}: {
+  ranges: RangeStore
+  updateRanges: (r: RangeStore) => void
+}) {
+  const [scenarioId, setScenarioId] = useState('BB_VS_UTG')
+  const [editing, setEditing] = useState(false)
   const scenario = SCENARIOS.find(s => s.id === scenarioId)!
   const range = ranges[scenarioId]
-  const [editing, setEditing] = useState(false)
-  const [batchOpen, setBatchOpen] = useState(false)
-  const [raiseInput, setRaiseInput] = useState('')
-  const [callInput, setCallInput] = useState('')
-  const [batchError, setBatchError] = useState('')
 
   const ensure = () => {
-    if (!range) updateRanges({ ...ranges, [scenarioId]: emptyRange() })
+    if (!range) {
+      updateRanges({
+        ...ranges,
+        [scenarioId]: emptyRange(),
+      })
+    }
     setEditing(true)
   }
 
   const cycle = (hand: string) => {
     const current = ranges[scenarioId] || emptyRange()
-    const order: Action[] = scenario.kind === 'defend' ? ['fold', 'call', 'raise'] : ['fold', 'raise']
+
+    const order: Action[] =
+      scenario.kind === 'defend'
+        ? ['fold', 'call', 'raise']
+        : ['fold', 'raise']
+
     const i = order.indexOf(current[hand] || 'fold')
     const nextAction = order[(i + 1) % order.length]
-    updateRanges({ ...ranges, [scenarioId]: { ...current, [hand]: nextAction } })
+
+    updateRanges({
+      ...ranges,
+      [scenarioId]: {
+        ...current,
+        [hand]: nextAction,
+      },
+    })
   }
 
-  const resetBatchFields = () => {
-    setRaiseInput('')
-    setCallInput('')
-    setBatchError('')
+  const counts: Record<Action, number> = {
+    raise: 0,
+    call: 0,
+    fold: 0,
   }
 
-  const applyBatch = () => {
-    const raiseParsed = parseRangeInput(raiseInput)
-    const callParsed = scenario.kind === 'defend' ? parseRangeInput(callInput) : { hands: [] as string[], invalid: [] as string[] }
-    const invalid = [...raiseParsed.invalid, ...callParsed.invalid]
-
-    if (!raiseParsed.hands.length && !callParsed.hands.length) {
-      setBatchError('請至少輸入一組手牌。')
-      return
-    }
-    if (invalid.length) {
-      setBatchError(`無法辨識：${[...new Set(invalid)].join(', ')}`)
-      return
-    }
-
-    const overlap = raiseParsed.hands.filter(hand => callParsed.hands.includes(hand))
-    if (overlap.length) {
-      setBatchError(`同一手牌不能同時指定兩種策略：${overlap.join(', ')}`)
-      return
-    }
-
-    const next = emptyRange()
-    raiseParsed.hands.forEach(hand => { next[hand] = 'raise' })
-    callParsed.hands.forEach(hand => { next[hand] = 'call' })
-    updateRanges({ ...ranges, [scenarioId]: next })
-    setEditing(false)
-    setBatchOpen(false)
-    resetBatchFields()
-  }
-
-  const counts: Record<Action, number> = { raise: 0, call: 0, fold: 0 }
   if (range) {
-    for (const action of Object.values(range) as Action[]) counts[action] += 1
+    for (const action of Object.values(range) as Action[]) {
+      counts[action] += 1
+    }
   } else {
     counts.fold = 169
   }
 
-  return <section className="page ranges-page">
-    <div className="eyebrow">RANGE LIBRARY</div>
-    <div className="title-row">
-      <div><h2>翻前範圍</h2><p className="muted">可逐格編輯，也可一次貼上整組範圍。</p></div>
-      <div className="title-actions">
-        <button className="secondary compact" onClick={() => { setBatchOpen(x => !x); setEditing(false); setBatchError('') }}>{batchOpen ? '關閉批次' : '批次輸入'}</button>
-        <button className="secondary compact" onClick={() => { setBatchOpen(false); editing ? setEditing(false) : ensure() }}>{editing ? '完成' : '編輯'}</button>
-      </div>
-    </div>
-    <div className="scenario-tabs">
-      {SCENARIOS.map(s => <button key={s.id} className={scenarioId === s.id ? 'active' : ''} onClick={() => {
-        setScenarioId(s.id)
-        setEditing(false)
-        setBatchOpen(false)
-        resetBatchFields()
-      }}>{s.short}</button>)}
-    </div>
-    <div className="panel range-heading">
-      <div><strong>{scenario.name}</strong><span className="muted">{range ? '已設定' : '尚未設定'}</span></div>
-      {!range && !batchOpen && <button className="primary compact" onClick={ensure}>建立範圍</button>}
-      {range && <div className="legend"><span className="raise-dot">{scenario.kind === 'defend' ? '3-Bet' : '加注'} {counts.raise}</span>{scenario.kind === 'defend' && <span className="call-dot">跟注 {counts.call}</span>}<span className="fold-dot">棄牌 {counts.fold}</span></div>}
-    </div>
+  return (
+    <div className="ranges-page">
+      <div className="page-header">
+        <div>
+          <h2>RANGE LIBRARY</h2>
+          <p>翻前範圍可逐格編輯。</p>
+        </div>
 
-    {batchOpen && <div className="panel batch-editor">
-      <div className="batch-copy">
-        <strong>批次覆蓋 {scenario.name}</strong>
-        <span>支援逗號、空白或換行分隔；可使用 AA-KK、A4s-A2s 這類區間。未輸入的手牌一律設為 Fold。</span>
+        <button
+          className="secondary compact"
+          onClick={() => {
+            if (editing) {
+              setEditing(false)
+            } else {
+              ensure()
+            }
+          }}
+        >
+          {editing ? '完成' : '編輯'}
+        </button>
       </div>
-      <label className="batch-field">
-        <span>{scenario.kind === 'defend' ? '3-Bet' : 'Raise'}</span>
-        <textarea value={raiseInput} onChange={e => { setRaiseInput(e.target.value); setBatchError('') }} placeholder={scenario.kind === 'defend' ? '例如：AA-KK, AKs, A6s, A4s-A2s, AKo' : '例如：AA-22, AKs-A2s, AKo-ATo'} />
-      </label>
-      {scenario.kind === 'defend' && <label className="batch-field">
-        <span>Call</span>
-        <textarea value={callInput} onChange={e => { setCallInput(e.target.value); setBatchError('') }} placeholder="例如：QQ-22, AQs-A7s, A5s, KQs-K7s" />
-      </label>}
-      {batchError && <div className="batch-error">{batchError}</div>}
-      <button className="primary wide" onClick={applyBatch}>套用並覆蓋此範圍</button>
-    </div>}
 
-    <RangeMatrix range={range || emptyRange()} editing={editing} onCell={cycle} scenario={scenario} />
-    {editing && <p className="helper">編輯模式：{scenario.kind === 'defend' ? 'Fold → Call → 3-Bet → Fold' : 'Fold → Raise → Fold'}</p>}
-  </section>
+      <div className="scenario-tabs">
+        {SCENARIOS.map(s => (
+          <button
+            key={s.id}
+            className={scenarioId === s.id ? 'active' : ''}
+            onClick={() => {
+              setScenarioId(s.id)
+              setEditing(false)
+            }}
+          >
+            {s.short}
+          </button>
+        ))}
+      </div>
+
+      <div className="range-summary">
+        <div>
+          <strong>{scenario.name}</strong>
+          <span>{range ? '已設定' : '尚未設定'}</span>
+        </div>
+
+        {!range && (
+          <button className="primary compact" onClick={ensure}>
+            建立範圍
+          </button>
+        )}
+
+        {range && (
+          <div className="range-counts">
+            <span>
+              {scenario.kind === 'defend' ? '3-Bet' : '加注'} {counts.raise}
+            </span>
+
+            {scenario.kind === 'defend' && (
+              <span>跟注 {counts.call}</span>
+            )}
+
+            <span>棄牌 {counts.fold}</span>
+          </div>
+        )}
+      </div>
+
+      <RangeMatrix
+        range={range || emptyRange()}
+        editing={editing}
+        onCell={cycle}
+        scenario={scenario}
+      />
+
+      {editing && (
+        <p className="helper">
+          編輯模式：
+          {scenario.kind === 'defend'
+            ? 'Fold → Call → 3-Bet → Fold'
+            : 'Fold → Raise → Fold'}
+        </p>
+      )}
+    </div>
+  )
 }
 
 function RangeMatrix({ range, editing, onCell, scenario }: { range: RangeMap; editing: boolean; onCell: (h: string) => void; scenario: Scenario }) {
