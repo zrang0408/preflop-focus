@@ -224,9 +224,8 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
   records: TrainingRecord[]
   updateRecords: (r: TrainingRecord[]) => void
 }) {
-  const configured = SCENARIOS.filter(s => ranges[s.id])
   const activeIds = settings.selected.filter(id => ranges[id])
-  const pool = activeIds.length ? activeIds : configured.map(s => s.id)
+  const pool = activeIds
   const [sessionStarted, setSessionStarted] = useState(false)
   const [index, setIndex] = useState(0)
   const [answer, setAnswer] = useState<Action | null>(null)
@@ -242,9 +241,21 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
   }, [pool.join(','), ranges, index, questionSeed])
 
   const start = () => {
+    if (!activeIds.length) return
     updateSettings({ ...settings, firstRunDone: true })
-    setIndex(0); setAnswer(null); setQuestionSeed(x => x + 1); setSessionStarted(true)
+    setIndex(0)
+    setAnswer(null)
+    setQuestionSeed(x => x + 1)
+    setSessionStarted(true)
   }
+
+  const end = () => {
+    setSessionStarted(false)
+    setIndex(0)
+    setAnswer(null)
+  }
+
+  <button className="secondary wide" onClick={end}>結束訓練</button>
 
   if (!settings.firstRunDone || !sessionStarted) {
     return <section className="page train-setup">
@@ -271,8 +282,8 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
         </div>
         {settings.mode === 'fixed' && <input className="number-input" type="number" min={1} max={500} value={settings.handCount} onChange={e => updateSettings({ ...settings, handCount: Math.max(1, Number(e.target.value) || 1) })} />}
       </div>
-      <button className="primary wide" onClick={start} disabled={!pool.length}>開始訓練</button>
-      {!pool.length && <p className="warning">請先到「範圍」建立至少一組可訓練範圍。</p>}
+      <button className="primary wide" onClick={start} disabled={!activeIds.length}> 開始訓練 </button>
+      {!pool.length && <p className="warning">請至少選擇一個訓練位置。</p>}
     </section>
   }
 
@@ -295,7 +306,7 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
         <Metric label="覆蓋率" value={`${((unique / denom) * 100).toFixed(1)}%`} />
       </div>
       <button className="primary wide" onClick={start}>再訓練一次</button>
-      <button className="secondary wide" onClick={() => setSessionStarted(false)}>返回設定</button>
+      <button className="secondary wide" onClick={end}>返回設定</button>
     </section>
   }
 
