@@ -48,6 +48,7 @@ const SCENARIOS: Scenario[] = [
 ]
 
 const actionText: Record<Action, string> = { raise: '加注', call: '跟注', fold: '棄牌' }
+<button className="secondary wide" onClick={end}>結束訓練</button>
 
 function cellName(row: number, col: number) {
   const a = RANKS[row]
@@ -254,8 +255,6 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
     setIndex(0)
     setAnswer(null)
   }
-
-  <button className="secondary wide" onClick={end}>結束訓練</button>
 
   if (!settings.firstRunDone || !sessionStarted) {
     return <section className="page train-setup">
