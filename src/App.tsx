@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 type Action = 'raise' | 'call' | 'fold'
 type Page = 'train' | 'ranges' | 'records' | 'settings'
@@ -29,12 +29,7 @@ type Settings = {
   selected: ScenarioId[]
   mode: 'fixed' | 'infinite'
   handCount: number
-}
-
-type TrainingQuestion = {
-  scenarioId: ScenarioId
-  hand: string
-  expected: Action
+  lowFrequencyAsFold: boolean
 }
 
 const RANKS = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'] as const
@@ -116,76 +111,22 @@ function writeJSON(key: string, value: unknown) {
   localStorage.setItem(key, JSON.stringify(value))
 }
 
-const DEFAULT_SETTINGS: Settings = {
-  firstRunDone: false,
-  selected: ['BB_VS_UTG'],
-  mode: 'fixed',
-  handCount: 20,
-}
-
-function readSettings(): Settings {
-  const saved = readJSON<Partial<Settings>>('pf_settings_v1', {})
-  const sanitized: Settings = {
-    firstRunDone: typeof saved.firstRunDone === 'boolean' ? saved.firstRunDone : DEFAULT_SETTINGS.firstRunDone,
-    selected: Array.isArray(saved.selected) ? saved.selected.filter((id): id is ScenarioId => SCENARIOS.some(s => s.id === id)) : DEFAULT_SETTINGS.selected,
-    mode: saved.mode === 'infinite' ? 'infinite' : 'fixed',
-    handCount: typeof saved.handCount === 'number' && saved.handCount > 0 ? saved.handCount : DEFAULT_SETTINGS.handCount,
-  }
-  writeJSON('pf_settings_v1', sanitized)
-  return sanitized
-}
-
-function shuffle<T>(items: T[]): T[] {
-  const out = [...items]
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[out[i], out[j]] = [out[j], out[i]]
-  }
-  return out
-}
-
-function buildTrainingDeck(pool: ScenarioId[], ranges: RangeStore): TrainingQuestion[] {
-  const questions: TrainingQuestion[] = []
-  for (const scenarioId of pool) {
-    const range = ranges[scenarioId]
-    if (!range) continue
-    for (const hand of Object.keys(range)) {
-      questions.push({ scenarioId, hand, expected: range[hand] })
-    }
-  }
-  return shuffle(questions)
-}
-
-function parseRangeInput(text: string) {
-  const validHands = emptyRange()
-  const hands = new Set<string>()
-  const invalid: string[] = []
-  const tokens = text.split(/[,，、;；\s]+/).map(t => t.trim()).filter(Boolean)
-
-  for (const token of tokens) {
-    const expanded = expandToken(token)
-    const validExpanded = expanded.filter(hand => hand in validHands)
-    if (!expanded.length || validExpanded.length !== expanded.length) {
-      invalid.push(token)
-      continue
-    }
-    validExpanded.forEach(hand => hands.add(hand))
-  }
-
-  return { hands: [...hands], invalid }
-}
-
 function App() {
   const [page, setPage] = useState<Page>('train')
   const [ranges, setRanges] = useState<RangeStore>(() => readJSON('pf_ranges_v1', DEFAULT_RANGES))
   const [records, setRecords] = useState<TrainingRecord[]>(() => readJSON('pf_records_v1', []))
-  const [settings, setSettings] = useState<Settings>(() => readSettings())
+  const [settings, setSettings] = useState<Settings>(() => readJSON('pf_settings_v1', {
+    firstRunDone: false,
+    selected: ['BB_VS_UTG'],
+    mode: 'fixed',
+    handCount: 20,
+    lowFrequencyAsFold: true,
+  }))
 
   const updateRanges = (next: RangeStore) => { setRanges(next); writeJSON('pf_ranges_v1', next) }
   const updateRecords = (next: TrainingRecord[]) => { setRecords(next); writeJSON('pf_records_v1', next) }
   const updateSettings = (next: Settings) => { setSettings(next); writeJSON('pf_settings_v1', next) }
 
-  //主頁 header頂部 main主內容區 page頁面切換
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -203,7 +144,7 @@ function App() {
         {page === 'train' && <TrainingPage ranges={ranges} settings={settings} updateSettings={updateSettings} records={records} updateRecords={updateRecords} />}
         {page === 'ranges' && <RangesPage ranges={ranges} updateRanges={updateRanges} />}
         {page === 'records' && <RecordsPage records={records} updateRecords={updateRecords} />}
-        {page === 'settings' && <SettingsPage updateRanges={updateRanges} records={records} updateRecords={updateRecords} />}
+        {page === 'settings' && <SettingsPage settings={settings} updateSettings={updateSettings} ranges={ranges} updateRanges={updateRanges} records={records} updateRecords={updateRecords} />}
       </main>
 
       <nav className="bottom-nav" aria-label="主選單">
@@ -216,12 +157,10 @@ function App() {
   )
 }
 
-//底部按鈕抽成共用
 function NavButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: string; onClick: () => void }) {
   return <button className={active ? 'nav-btn active' : 'nav-btn'} onClick={onClick}><span>{icon}</span><small>{label}</small></button>
 }
 
-//訓練功能
 function TrainingPage({ ranges, settings, updateSettings, records, updateRecords }: {
   ranges: RangeStore
   settings: Settings
@@ -235,21 +174,27 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
   const [sessionStarted, setSessionStarted] = useState(false)
   const [index, setIndex] = useState(0)
   const [answer, setAnswer] = useState<Action | null>(null)
-  const [deck, setDeck] = useState<TrainingQuestion[]>([])
+  const [questionSeed, setQuestionSeed] = useState(0)
+
+  const question = useMemo(() => {
+    if (!pool.length) return null
+    const scenarioId = pool[(index + questionSeed) % pool.length]
+    const range = ranges[scenarioId]!
+    const hands = Object.keys(range)
+    const n = Math.abs(hash(`${scenarioId}-${index}-${questionSeed}`)) % hands.length
+    return { scenarioId, hand: hands[n], expected: range[hands[n]] }
+  }, [pool.join(','), ranges, index, questionSeed])
 
   const start = () => {
     updateSettings({ ...settings, firstRunDone: true })
-    setDeck(buildTrainingDeck(pool, ranges))
-    setIndex(0)
-    setAnswer(null)
-    setSessionStarted(true)
+    setIndex(0); setAnswer(null); setQuestionSeed(x => x + 1); setSessionStarted(true)
   }
 
   if (!settings.firstRunDone || !sessionStarted) {
     return <section className="page train-setup">
       <div className="eyebrow">PREFLOP TRAINER</div>
       <h2>{settings.firstRunDone ? '開始新的訓練' : '訓練設定'}</h2>
-      <p className="muted">可同時選擇多個位置。每一輪會先將所有可訓練手牌洗牌，同一位置的 169 手牌在該輪內不重複。</p>
+      <p className="muted">可同時選擇多個位置。尚未建立範圍的位置不會進入出題。</p>
       <div className="scenario-grid">
         {SCENARIOS.map(s => {
           const available = !!ranges[s.id]
@@ -275,6 +220,9 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
     </section>
   }
 
+  if (!question) return null
+  const scenario = SCENARIOS.find(s => s.id === question.scenarioId)!
+  const correct = answer === question.expected
   const sessionDone = settings.mode === 'fixed' && index >= settings.handCount
 
   if (sessionDone) {
@@ -295,12 +243,6 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
     </section>
   }
 
-  const question = deck[index]
-  if (!question) return null
-
-  const scenario = SCENARIOS.find(s => s.id === question.scenarioId)!
-  const correct = answer === question.expected
-
   const choose = (a: Action) => {
     if (answer) return
     setAnswer(a)
@@ -309,14 +251,6 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
       expected: question.expected, answered: a, correct: a === question.expected, at: Date.now(),
     }
     updateRecords([rec, ...records])
-  }
-
-  const nextQuestion = () => {
-    const nextIndex = index + 1
-    const needsAnotherRound = nextIndex >= deck.length && (settings.mode === 'infinite' || nextIndex < settings.handCount)
-    if (needsAnotherRound) setDeck(current => [...current, ...buildTrainingDeck(pool, ranges)])
-    setIndex(nextIndex)
-    setAnswer(null)
   }
 
   return <section className="page training-card-page">
@@ -336,7 +270,7 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
       <strong>{correct ? '正確' : '錯誤'}</strong>
       <span>正確策略：{question.expected === 'raise' && scenario.kind === 'defend' ? '3-Bet' : actionText[question.expected]}</span>
     </div>}
-    {answer && <button className="primary wide" onClick={nextQuestion}>繼續</button>}
+    {answer && <button className="primary wide" onClick={() => { setIndex(i => i + 1); setAnswer(null) }}>繼續</button>}
   </section>
 }
 
@@ -349,143 +283,41 @@ function AnswerButton({ action, selected, expected, onClick, label }: { action: 
   return <button className={cls} onClick={() => onClick(action)}>{label}</button>
 }
 
-function RangesPage({
-  ranges,
-  updateRanges,
-}: {
-  ranges: RangeStore
-  updateRanges: (r: RangeStore) => void
-}) {
-  const [scenarioId, setScenarioId] = useState('BB_VS_UTG')
-  const [editing, setEditing] = useState(false)
+function RangesPage({ ranges, updateRanges }: { ranges: RangeStore; updateRanges: (r: RangeStore) => void }) {
+  const [scenarioId, setScenarioId] = useState<ScenarioId>('BB_VS_UTG')
   const scenario = SCENARIOS.find(s => s.id === scenarioId)!
   const range = ranges[scenarioId]
+  const [editing, setEditing] = useState(false)
 
   const ensure = () => {
-    if (!range) {
-      updateRanges({
-        ...ranges,
-        [scenarioId]: emptyRange(),
-      })
-    }
+    if (!range) updateRanges({ ...ranges, [scenarioId]: emptyRange() })
     setEditing(true)
   }
 
   const cycle = (hand: string) => {
     const current = ranges[scenarioId] || emptyRange()
-
-    const order: Action[] =
-      scenario.kind === 'defend'
-        ? ['fold', 'call', 'raise']
-        : ['fold', 'raise']
-
+    const order: Action[] = scenario.kind === 'defend' ? ['fold', 'call', 'raise'] : ['fold', 'raise']
     const i = order.indexOf(current[hand] || 'fold')
     const nextAction = order[(i + 1) % order.length]
-
-    updateRanges({
-      ...ranges,
-      [scenarioId]: {
-        ...current,
-        [hand]: nextAction,
-      },
-    })
+    updateRanges({ ...ranges, [scenarioId]: { ...current, [hand]: nextAction } })
   }
 
-  const counts: Record<Action, number> = {
-    raise: 0,
-    call: 0,
-    fold: 0,
-  }
+  const counts = range ? Object.values(range).reduce((a, x) => ({ ...a, [x]: a[x] + 1 }), { raise: 0, call: 0, fold: 0 }) : { raise: 0, call: 0, fold: 169 }
 
-  if (range) {
-    for (const action of Object.values(range) as Action[]) {
-      counts[action] += 1
-    }
-  } else {
-    counts.fold = 169
-  }
-
-  return (
-    <div className="ranges-page">
-      <div className="page-header">
-        <div>
-          <h2>RANGE LIBRARY</h2>
-          <p>翻前範圍可逐格編輯。</p>
-        </div>
-
-        <button
-          className="secondary compact"
-          onClick={() => {
-            if (editing) {
-              setEditing(false)
-            } else {
-              ensure()
-            }
-          }}
-        >
-          {editing ? '完成' : '編輯'}
-        </button>
-      </div>
-
-      <div className="scenario-tabs">
-        {SCENARIOS.map(s => (
-          <button
-            key={s.id}
-            className={scenarioId === s.id ? 'active' : ''}
-            onClick={() => {
-              setScenarioId(s.id)
-              setEditing(false)
-            }}
-          >
-            {s.short}
-          </button>
-        ))}
-      </div>
-
-      <div className="range-summary">
-        <div>
-          <strong>{scenario.name}</strong>
-          <span>{range ? '已設定' : '尚未設定'}</span>
-        </div>
-
-        {!range && (
-          <button className="primary compact" onClick={ensure}>
-            建立範圍
-          </button>
-        )}
-
-        {range && (
-          <div className="range-counts">
-            <span>
-              {scenario.kind === 'defend' ? '3-Bet' : '加注'} {counts.raise}
-            </span>
-
-            {scenario.kind === 'defend' && (
-              <span>跟注 {counts.call}</span>
-            )}
-
-            <span>棄牌 {counts.fold}</span>
-          </div>
-        )}
-      </div>
-
-      <RangeMatrix
-        range={range || emptyRange()}
-        editing={editing}
-        onCell={cycle}
-        scenario={scenario}
-      />
-
-      {editing && (
-        <p className="helper">
-          編輯模式：
-          {scenario.kind === 'defend'
-            ? 'Fold → Call → 3-Bet → Fold'
-            : 'Fold → Raise → Fold'}
-        </p>
-      )}
+  return <section className="page ranges-page">
+    <div className="eyebrow">RANGE LIBRARY</div>
+    <div className="title-row"><div><h2>翻前範圍</h2><p className="muted">點擊格子可依序切換策略。</p></div><button className="secondary compact" onClick={() => editing ? setEditing(false) : ensure()}>{editing ? '完成' : '編輯'}</button></div>
+    <div className="scenario-tabs">
+      {SCENARIOS.map(s => <button key={s.id} className={scenarioId === s.id ? 'active' : ''} onClick={() => { setScenarioId(s.id); setEditing(false) }}>{s.short}</button>)}
     </div>
-  )
+    <div className="panel range-heading">
+      <div><strong>{scenario.name}</strong><span className="muted">{range ? '已設定' : '尚未設定'}</span></div>
+      {!range && <button className="primary compact" onClick={ensure}>建立範圍</button>}
+      {range && <div className="legend"><span className="raise-dot">{scenario.kind === 'defend' ? '3-Bet' : '加注'} {counts.raise}</span>{scenario.kind === 'defend' && <span className="call-dot">跟注 {counts.call}</span>}<span className="fold-dot">棄牌 {counts.fold}</span></div>}
+    </div>
+    <RangeMatrix range={range || emptyRange()} editing={editing} onCell={cycle} scenario={scenario} />
+    {editing && <p className="helper">編輯模式：{scenario.kind === 'defend' ? 'Fold → Call → 3-Bet → Fold' : 'Fold → Raise → Fold'}</p>}
+  </section>
 }
 
 function RangeMatrix({ range, editing, onCell, scenario }: { range: RangeMap; editing: boolean; onCell: (h: string) => void; scenario: Scenario }) {
@@ -526,21 +358,22 @@ function RecordsPage({ records, updateRecords }: { records: TrainingRecord[]; up
   </section>
 }
 
-function SettingsPage({ updateRanges, records, updateRecords }: {
-  updateRanges: (r: RangeStore) => void; records: TrainingRecord[]; updateRecords: (r: TrainingRecord[]) => void
+function SettingsPage({ settings, updateSettings, ranges, updateRanges, records, updateRecords }: {
+  settings: Settings; updateSettings: (s: Settings) => void; ranges: RangeStore; updateRanges: (r: RangeStore) => void; records: TrainingRecord[]; updateRecords: (r: TrainingRecord[]) => void
 }) {
   return <section className="page settings-page">
     <div className="eyebrow">APP SETTINGS</div><h2>設定</h2>
     <div className="panel setting-row"><div><strong>遊戲類型</strong><span>6-Max 極速現金桌</span></div><b>固定</b></div>
     <div className="panel setting-row"><div><strong>有效籌碼</strong><span>100BB</span></div><b>固定</b></div>
     <div className="panel setting-row"><div><strong>對手模型</strong><span>Unknown Pool</span></div><b>固定</b></div>
+    <label className="panel setting-row clickable"><div><strong>低頻率加注直接棄牌</strong><span>低於 50% 的加注頻率視為 Fold</span></div><input type="checkbox" checked={settings.lowFrequencyAsFold} onChange={e => updateSettings({ ...settings, lowFrequencyAsFold: e.target.checked })} /></label>
     <div className="danger-zone">
       <h3>資料管理</h3>
       <button className="secondary wide" disabled={!records.length} onClick={() => { if (confirm('刪除全部訓練紀錄？')) updateRecords([]) }}>刪除全部訓練紀錄</button>
       <button className="danger wide" onClick={() => { if (confirm('重設所有自訂範圍？只保留內建 BB vs UTG。')) updateRanges(DEFAULT_RANGES) }}>重設翻前範圍</button>
       <button className="danger wide" onClick={() => { if (confirm('重設整個 App？')) { localStorage.clear(); location.reload() } }}>清除所有本機資料</button>
     </div>
-    <div className="about"><strong>Preflop Focus</strong><span>GitHub Pages Edition · v1.1.0</span><small>資料只儲存在這台裝置的瀏覽器。</small></div>
+    <div className="about"><strong>Preflop Focus</strong><span>GitHub Pages Edition · v1.0.0</span><small>資料只儲存在這台裝置的瀏覽器。</small></div>
   </section>
 }
 
@@ -548,5 +381,10 @@ function Metric({ label, value }: { label: string; value: string }) {
   return <div className="metric"><span>{label}</span><strong>{value}</strong></div>
 }
 
+function hash(str: string) {
+  let h = 0
+  for (let i = 0; i < str.length; i++) h = ((h << 5) - h + str.charCodeAt(i)) | 0
+  return h
+}
 
 export default App
