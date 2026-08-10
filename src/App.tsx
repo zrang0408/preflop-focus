@@ -330,13 +330,13 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
       <AnswerButton action="raise" selected={answer} expected={question.expected} onClick={choose} label={scenario.kind === 'defend' ? '3-Bet' : '加注'} />
       {(scenario.kind === 'defend' || scenario.kind === 'sb_open') && <AnswerButton action="call" selected={answer} expected={question.expected} onClick={choose} label={scenario.kind === 'sb_open' ? 'Limp / Call' : '跟注'} />}
       <AnswerButton action="fold" selected={answer} expected={question.expected} onClick={choose} label="棄牌" />
-      <button className="secondary wide" onClick={end}>結束訓練</button>
     </div>
     {answer && <div className={correct ? 'feedback correct' : 'feedback wrong'}>
       <strong>{correct ? '正確' : '錯誤'}</strong>
       <span>正確策略：{question.expected === 'raise' && scenario.kind === 'defend' ? '3-Bet' : question.expected === 'call' && scenario.kind === 'sb_open' ? 'Limp / Call' : actionText[question.expected]}</span>
     </div>}
     {answer && <button className="primary wide" onClick={() => { setIndex(i => i + 1); setAnswer(null) }}>繼續</button>}
+    <button className="secondary wide" onClick={end}>結束訓練</button>
   </section>
 }
 
