@@ -365,7 +365,6 @@ function SettingsPage({ settings, updateSettings, ranges, updateRanges, records,
     <div className="eyebrow">APP SETTINGS</div><h2>設定</h2>
     <div className="panel setting-row"><div><strong>遊戲類型</strong><span>6-Max 極速現金桌</span></div><b>固定</b></div>
     <div className="panel setting-row"><div><strong>有效籌碼</strong><span>100BB</span></div><b>固定</b></div>
-    <div className="panel setting-row"><div><strong>對手模型</strong><span>Unknown Pool</span></div><b>固定</b></div>
     <div className="danger-zone">
       <h3>資料管理</h3>
       <button className="secondary wide" disabled={!records.length} onClick={() => { if (confirm('刪除全部訓練紀錄？')) updateRecords([]) }}>刪除全部訓練紀錄</button>
