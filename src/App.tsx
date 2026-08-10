@@ -181,7 +181,6 @@ function App() {
       <main>
         {page === 'train' && <TrainingPage ranges={ranges} settings={settings} updateSettings={updateSettings} records={records} updateRecords={updateRecords} />}
         {page === 'ranges' && <RangesPage ranges={ranges} updateRanges={updateRanges} />}
-        {page === 'records' && <RecordsPage records={records} updateRecords={updateRecords} />}
         {page === 'settings' && <SettingsPage updateRanges={updateRanges} records={records} updateRecords={updateRecords} />}
       </main>
 
@@ -468,13 +467,6 @@ function RangesPage({
           </div>
         )}
       </div>
-
-      <RangeMatrix
-        range={range || emptyRange()}
-        editing={editing}
-        onCell={cycle}
-        scenario={scenario}
-      />
 
       {editing && (
         <p className="helper">
