@@ -52,6 +52,7 @@ h3 { font-size: 15px; }
 .nav-btn.active { color: #8ee7bf; }
 .training-card-page { text-align: center; }
 .training-progress { display: flex; justify-content: space-between; color: #838c99; font-size: 12px; margin-bottom: 20px; }
+.end-training-btn { display: block; margin: -8px 0 18px auto; }
 .hand-card { width: min(72vw, 280px); aspect-ratio: 1.1; margin: 14px auto 24px; border: 1px solid #2b343e; border-radius: 28px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(160deg, #121820, #0c1016); box-shadow: 0 24px 70px rgba(0,0,0,.35); position: relative; overflow: hidden; }
 .hand-card:after { content: ''; position: absolute; width: 160px; height: 160px; border-radius: 50%; background: rgba(100,222,170,.07); filter: blur(1px); }
 .hand-card small { z-index: 1; color: #77818f; font-weight: 800; letter-spacing: .17em; }
