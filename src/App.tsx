@@ -48,7 +48,6 @@ const SCENARIOS: Scenario[] = [
 ]
 
 const actionText: Record<Action, string> = { raise: '加注', call: '跟注', fold: '棄牌' }
-<button className="secondary wide" onClick={end}>結束訓練</button>
 
 function cellName(row: number, col: number) {
   const a = RANKS[row]
@@ -331,6 +330,7 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
       <AnswerButton action="raise" selected={answer} expected={question.expected} onClick={choose} label={scenario.kind === 'defend' ? '3-Bet' : '加注'} />
       {(scenario.kind === 'defend' || scenario.kind === 'sb_open') && <AnswerButton action="call" selected={answer} expected={question.expected} onClick={choose} label={scenario.kind === 'sb_open' ? 'Limp / Call' : '跟注'} />}
       <AnswerButton action="fold" selected={answer} expected={question.expected} onClick={choose} label="棄牌" />
+      <button className="secondary wide" onClick={end}>結束訓練</button>
     </div>
     {answer && <div className={correct ? 'feedback correct' : 'feedback wrong'}>
       <strong>{correct ? '正確' : '錯誤'}</strong>
