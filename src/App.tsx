@@ -326,140 +326,166 @@ function AnswerButton({ action, selected, expected, onClick, label }: { action: 
   return <button className={cls} onClick={() => onClick(action)}>{label}</button>
 }
 
-function RangesPage({ ranges, updateRanges }: { ranges: RangeStore; updateRanges: (r: RangeStore) => void }) {
-  const [scenarioId, setScenarioId] = useState<ScenarioId>('BB_VS_UTG')
+function RangesPage({
+  ranges,
+  updateRanges,
+}: {
+  ranges: RangeStore
+  updateRanges: (r: RangeStore) => void
+}) {
+  const [scenarioId, setScenarioId] =
+    useState<ScenarioId>('BB_VS_UTG')
+
   const scenario = SCENARIOS.find(s => s.id === scenarioId)!
   const range = ranges[scenarioId]
+
   const [editing, setEditing] = useState(false)
-  const [batchOpen, setBatchOpen] = useState(false)
-  const [raiseInput, setRaiseInput] = useState('')
-  const [callInput, setCallInput] = useState('')
-  const [batchError, setBatchError] = useState('')
 
   const ensure = () => {
-    if (!range) updateRanges({ ...ranges, [scenarioId]: emptyRange() })
+    if (!range) {
+      updateRanges({
+        ...ranges,
+        [scenarioId]: emptyRange(),
+      })
+    }
+
     setEditing(true)
   }
 
   const cycle = (hand: string) => {
     const current = ranges[scenarioId] || emptyRange()
-    const order: Action[] = scenario.kind === 'defend' ? ['fold', 'call', 'raise'] : ['fold', 'raise']
+
+    const order: Action[] =
+      scenario.kind === 'defend'
+        ? ['fold', 'call', 'raise']
+        : ['fold', 'raise']
+
     const i = order.indexOf(current[hand] || 'fold')
     const nextAction = order[(i + 1) % order.length]
-    updateRanges({ ...ranges, [scenarioId]: { ...current, [hand]: nextAction } })
+
+    updateRanges({
+      ...ranges,
+      [scenarioId]: {
+        ...current,
+        [hand]: nextAction,
+      },
+    })
   }
 
-  const resetBatchFields = () => {
-    setRaiseInput('')
-    setCallInput('')
-    setBatchError('')
+  const counts: Record<Action, number> = {
+    raise: 0,
+    call: 0,
+    fold: 0,
   }
 
-  const applyBatch = () => {
-    const raiseParsed = parseRangeInput(raiseInput)
-    const callParsed = scenario.kind === 'defend' ? parseRangeInput(callInput) : { hands: [] as string[], invalid: [] as string[] }
-    const invalid = [...raiseParsed.invalid, ...callParsed.invalid]
-
-    if (!raiseParsed.hands.length && !callParsed.hands.length) {
-      setBatchError('請至少輸入一組手牌。')
-      return
-    }
-    if (invalid.length) {
-      setBatchError(`無法辨識：${[...new Set(invalid)].join(', ')}`)
-      return
-    }
-
-    const overlap = raiseParsed.hands.filter(hand => callParsed.hands.includes(hand))
-    if (overlap.length) {
-      setBatchError(`同一手牌不能同時指定兩種策略：${overlap.join(', ')}`)
-      return
-    }
-
-    const next = emptyRange()
-    raiseParsed.hands.forEach(hand => { next[hand] = 'raise' })
-    callParsed.hands.forEach(hand => { next[hand] = 'call' })
-    updateRanges({ ...ranges, [scenarioId]: next })
-    setEditing(false)
-  }
-
-  const counts: Record<Action, number> = { raise: 0, call: 0, fold: 0 }
   if (range) {
-    for (const action of Object.values(range) as Action[]) counts[action] += 1
+    for (const action of Object.values(range) as Action[]) {
+      counts[action] += 1
+    }
   } else {
     counts.fold = 169
   }
 
-return <section className="page ranges-page">
-  <div className="eyebrow">RANGE LIBRARY</div>
+  return (
+    <section className="page ranges-page">
+      <div className="eyebrow">RANGE LIBRARY</div>
 
-  <div className="title-row">
-    <div>
-      <h2>翻前範圍</h2>
-      <p className="muted">點擊格子可依序切換策略。</p>
-    </div>
+      <div className="title-row">
+        <div>
+          <h2>翻前範圍</h2>
+          <p className="muted">
+            點擊格子可依序切換策略。
+          </p>
+        </div>
 
-    <button
-      className="secondary compact"
-      onClick={() => editing ? setEditing(false) : ensure()}
-    >
-      {editing ? '完成' : '編輯'}
-    </button>
-  </div>
-    <div className="scenario-tabs">
-      {SCENARIOS.map(s => <button key={s.id} className={scenarioId === s.id ? 'active' : ''} onClick={() => {
-        setScenarioId(s.id)
-        setEditing(false)
-        setBatchOpen(false)
-        resetBatchFields()
-      }}>{s.short}</button>)}
-    </div>
-    <div className="panel range-heading">
-      <div><strong>{scenario.name}</strong><span className="muted">{range ? '已設定' : '尚未設定'}</span></div>
-      {!range && (<button className="primary compact" onClick={ensure}>建立範圍</button>)}
-      {range && <div className="legend"><span className="raise-dot">{scenario.kind === 'defend' ? '3-Bet' : '加注'} {counts.raise}</span>{scenario.kind === 'defend' && <span className="call-dot">跟注 {counts.call}</span>}<span className="fold-dot">棄牌 {counts.fold}</span></div>}
-    </div>
+        <button
+          className="secondary compact"
+          onClick={() =>
+            editing
+              ? setEditing(false)
+              : ensure()
+          }
+        >
+          {editing ? '完成' : '編輯'}
+        </button>
+      </div>
 
-    <RangeMatrix range={range || emptyRange()} editing={editing} onCell={cycle} scenario={scenario} />
-    {editing && <p className="helper">編輯模式：{scenario.kind === 'defend' ? 'Fold → Call → 3-Bet → Fold' : 'Fold → Raise → Fold'}</p>}
-  </section>
-}
+      <div className="scenario-tabs">
+        {SCENARIOS.map(s => (
+          <button
+            key={s.id}
+            className={
+              scenarioId === s.id
+                ? 'active'
+                : ''
+            }
+            onClick={() => {
+              setScenarioId(s.id)
+              setEditing(false)
+            }}
+          >
+            {s.short}
+          </button>
+        ))}
+      </div>
 
-function RangeMatrix({ range, editing, onCell, scenario }: { range: RangeMap; editing: boolean; onCell: (h: string) => void; scenario: Scenario }) {
-  return <div className="matrix-wrap"><div className="range-matrix">
-    {RANKS.map((_, r) => RANKS.map((__, c) => {
-      const hand = cellName(r, c)
-      const action = range[hand] || 'fold'
-      return <button key={hand} disabled={!editing} onClick={() => onCell(hand)} className={`range-cell ${action}`} title={`${hand}: ${action === 'raise' && scenario.kind === 'defend' ? '3-Bet' : actionText[action]}`}>{hand}</button>
-    }))}
-  </div></div>
-}
+      <div className="panel range-heading">
+        <div>
+          <strong>{scenario.name}</strong>
 
-function RecordsPage({ records, updateRecords }: { records: TrainingRecord[]; updateRecords: (r: TrainingRecord[]) => void }) {
-  const [tab, setTab] = useState<'all' | 'wrong'>('all')
-  const shown = tab === 'all' ? records : records.filter(r => !r.correct)
-  const total = records.length
-  const correct = records.filter(r => r.correct).length
-  return <section className="page">
-    <div className="eyebrow">TRAINING HISTORY</div>
-    <h2>訓練紀錄</h2>
-    <div className="summary-grid">
-      <Metric label="總題數" value={String(total)} />
-      <Metric label="正確率" value={total ? `${Math.round(correct / total * 100)}%` : '—'} />
-      <Metric label="錯題" value={String(total - correct)} />
-    </div>
-    <div className="segmented record-tabs"><button className={tab === 'all' ? 'active' : ''} onClick={() => setTab('all')}>全部</button><button className={tab === 'wrong' ? 'active' : ''} onClick={() => setTab('wrong')}>錯題</button></div>
-    <div className="record-list">
-      {!shown.length && <div className="empty-state">尚無紀錄</div>}
-      {shown.map(r => {
-        const s = SCENARIOS.find(x => x.id === r.scenarioId)!
-        return <article className="record-row" key={r.id}>
-          <div className={`record-hand ${r.correct ? 'ok' : 'bad'}`}>{r.hand}</div>
-          <div className="record-main"><strong>{s.name}</strong><span>{r.correct ? '答對' : `你的答案：${actionText[r.answered]} · 正解：${actionText[r.expected]}`}</span><small>{new Date(r.at).toLocaleString('zh-TW')}</small></div>
-          <button className="icon-btn" aria-label="刪除" onClick={() => updateRecords(records.filter(x => x.id !== r.id))}>×</button>
-        </article>
-      })}
-    </div>
-  </section>
+          <span className="muted">
+            {range ? '已設定' : '尚未設定'}
+          </span>
+        </div>
+
+        {!range && (
+          <button
+            className="primary compact"
+            onClick={ensure}
+          >
+            建立範圍
+          </button>
+        )}
+
+        {range && (
+          <div className="legend">
+            <span className="raise-dot">
+              {scenario.kind === 'defend'
+                ? '3-Bet'
+                : '加注'}{' '}
+              {counts.raise}
+            </span>
+
+            {scenario.kind === 'defend' && (
+              <span className="call-dot">
+                跟注 {counts.call}
+              </span>
+            )}
+
+            <span className="fold-dot">
+              棄牌 {counts.fold}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <RangeMatrix
+        range={range || emptyRange()}
+        editing={editing}
+        onCell={cycle}
+        scenario={scenario}
+      />
+
+      {editing && (
+        <p className="helper">
+          編輯模式：
+          {scenario.kind === 'defend'
+            ? 'Fold → Call → 3-Bet → Fold'
+            : 'Fold → Raise → Fold'}
+        </p>
+      )}
+    </section>
+  )
 }
 
 function SettingsPage({ updateRanges, records, updateRecords }: {
