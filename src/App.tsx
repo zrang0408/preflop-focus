@@ -411,15 +411,22 @@ function RangesPage({ ranges, updateRanges }: { ranges: RangeStore; updateRanges
     counts.fold = 169
   }
 
-  return <section className="page ranges-page">
-    <div className="eyebrow">RANGE LIBRARY</div>
-    <div className="title-row">
-      <div><h2>翻前範圍</h2><p className="muted">可逐格編輯，也可一次貼上整組範圍。</p></div>
-      <div className="title-actions">
-        <button className="secondary compact" onClick={() => { setBatchOpen(x => !x); setEditing(false); setBatchError('') }}>{batchOpen ? '關閉批次' : '批次輸入'}</button>
-        <button className="secondary compact" onClick={() => { setBatchOpen(false); editing ? setEditing(false) : ensure() }}>{editing ? '完成' : '編輯'}</button>
-      </div>
+return <section className="page ranges-page">
+  <div className="eyebrow">RANGE LIBRARY</div>
+
+  <div className="title-row">
+    <div>
+      <h2>翻前範圍</h2>
+      <p className="muted">點擊格子可依序切換策略。</p>
     </div>
+
+    <button
+      className="secondary compact"
+      onClick={() => editing ? setEditing(false) : ensure()}
+    >
+      {editing ? '完成' : '編輯'}
+    </button>
+  </div>
     <div className="scenario-tabs">
       {SCENARIOS.map(s => <button key={s.id} className={scenarioId === s.id ? 'active' : ''} onClick={() => {
         setScenarioId(s.id)
