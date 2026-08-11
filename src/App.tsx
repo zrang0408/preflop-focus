@@ -223,6 +223,29 @@ type TrainingQuestion = {
   expected: Action
 }
 
+const SEATS = ['UTG', 'HJ', 'CO', 'BTN', 'SB', 'BB']
+
+function PositionTable({ scenario }: { scenario: Scenario }) {
+  const hero = scenario.kind === 'open' ? scenario.short : 'BB'
+  const opener = scenario.kind === 'defend' ? scenario.id.split('_').at(-1) : ''
+
+  return <div className="position-table">
+    <div className="table-center">6-MAX</div>
+
+    {SEATS.map(p =>
+      <div
+        key={p}
+        style={{ gridArea: p.toLowerCase() }}
+        className={`seat ${p === hero ? 'hero' : p === opener ? 'opener' : ''}`}
+      >
+        <b>{p}</b>
+        {(p === hero || p === opener) &&
+          <small>{p === hero ? 'HERO' : 'OPEN'}</small>}
+      </div>
+    )}
+  </div>
+}
+
 function TrainingPage({ ranges, settings, updateSettings, records, updateRecords }: {
   ranges: RangeStore
   settings: Settings
@@ -334,6 +357,7 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
 
   return <section className="page training-card-page">
     <div className="training-progress"><span>{scenario.name}</span><span>{settings.mode === 'fixed' ? `${index + 1} / ${settings.handCount}` : `#${index + 1}`}</span></div>
+    <PositionTable scenario={scenario} />
     <div className="hand-card">
       <small>HERO HAND</small>
       <div className="hand-name">{question.hand}</div>
