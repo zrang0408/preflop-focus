@@ -112,3 +112,9 @@ h3 { font-size: 15px; }
   .bottom-nav { left: 50%; right: auto; width: min(100%, 820px); transform: translateX(-50%); border-left: 1px solid #202631; border-right: 1px solid #202631; border-radius: 16px 16px 0 0; }
   .scenario-grid { grid-template-columns: repeat(3, 1fr); }
 }
+.position-table { display:grid; grid-template-areas:". hj co ." "utg table table btn" ". bb sb ."; grid-template-columns:repeat(4,1fr); gap:8px; align-items:center; margin:10px auto 24px; max-width:420px; }
+.table-center { grid-area:table; height:85px; border:2px solid #29313b; border-radius:50%; background:#10151b; color:#59626f; display:grid; place-items:center; font-size:11px; font-weight:800; }
+.seat { height:44px; border:1px solid #2b323d; border-radius:10px; background:#171c23; color:#858d99; display:grid; place-content:center; font-size:11px; }
+.seat small { font-size:7px; }
+.seat.hero { background:#123024; border-color:#48c58f; color:#8be2bb; }
+.seat.opener { background:#332511; border-color:#c98c35; color:#f0bf72; }
