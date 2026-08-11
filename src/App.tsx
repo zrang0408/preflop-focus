@@ -93,7 +93,7 @@ function rangeFromLists(raiseTokens: string[], callTokens: string[]): RangeMap {
 
 const DEFAULT_UTG_OPEN = rangeFromLists(
   ['AA-77', 'AKs-A2s', 'KQs-K5s', 'QJs-Q9s', 'JTs', 'AKo-ATo', 'KQo-KTo'],
-  [],
+[],
 )
 
 const DEFAULT_HJ_OPEN = rangeFromLists(
@@ -226,7 +226,7 @@ type TrainingQuestion = {
 const SEATS = ['UTG', 'HJ', 'CO', 'BTN', 'SB', 'BB']
 
 function PositionTable({ scenario }: { scenario: Scenario }) {
-  const hero = scenario.kind === 'open' ? scenario.short : 'BB'
+  const hero = scenario.kind === 'open' ? scenario.id.split('_')[0] : 'BB'
   const opener = scenario.kind === 'defend' ? scenario.id.split('_').pop() || '' : ''
 
   return <div className="position-table">
