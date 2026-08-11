@@ -350,7 +350,7 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
       <span>正確策略：{question.expected === 'raise' && scenario.kind === 'defend' ? '3-Bet' : question.expected === 'call' && scenario.kind === 'sb_open' ? 'Limp / Call' : actionText[question.expected]}</span>
     </div>}
     {answer && <button
-  className="primary wide" onClick={() => {setIndex(i => i + 1) setAnswer(null) setQuestion(drawQuestion())}}>繼續</button>}
+    className="primary wide" onClick={() => { setIndex(i => i + 1); setAnswer(null); setQuestion(drawQuestion()); }}>繼續</button>}
     <button className="secondary wide" onClick={end}>結束訓練</button>
   </section>
 }
