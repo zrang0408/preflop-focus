@@ -227,7 +227,7 @@ const SEATS = ['UTG', 'HJ', 'CO', 'BTN', 'SB', 'BB']
 
 function PositionTable({ scenario }: { scenario: Scenario }) {
   const hero = scenario.kind === 'open' ? scenario.short : 'BB'
-  const opener = scenario.kind === 'defend' ? scenario.id.split('_').at(-1) : ''
+  const opener = scenario.kind === 'defend' ? scenario.id.split('_').pop() || '' : ''
 
   return <div className="position-table">
     <div className="table-center">6-MAX</div>
