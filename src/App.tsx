@@ -347,12 +347,18 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
 
   const choose = (a: Action) => {
     if (answer) return
-    setAnswer(a)
+    const ok = a === question.expected
     const rec: TrainingRecord = {
       id: crypto.randomUUID(), scenarioId: question.scenarioId, hand: question.hand,
-      expected: question.expected, answered: a, correct: a === question.expected, at: Date.now(),
+      expected: question.expected, answered: a, correct: ok, at: Date.now(),
     }
     updateRecords([rec, ...records])
+      if (ok) {
+      setIndex(i => i + 1)
+      setAnswer(null)
+    } else {
+      setAnswer(a)
+    }
   }
 
   return <section className="page training-card-page">
@@ -373,8 +379,7 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
       <strong>{correct ? '正確' : '錯誤'}</strong>
       <span>正確策略：{question.expected === 'raise' && scenario.kind === 'defend' ? '3-Bet' : question.expected === 'call' && scenario.kind === 'sb_open' ? 'Limp / Call' : actionText[question.expected]}</span>
     </div>}
-    {answer && <button
-    className="primary wide" onClick={() => { setIndex(i => i + 1); setAnswer(null); setQuestion(drawQuestion()); }}>繼續</button>}
+    {answer && !correct && <button className="primary wide" onClick={() => { setIndex(i => i + 1); setAnswer(null) }}>繼續</button>}
     <button className="secondary wide" onClick={end}>結束訓練</button>
   </section>
 }
