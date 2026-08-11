@@ -217,6 +217,12 @@ function NavButton({ active, label, icon, onClick }: { active: boolean; label: s
   return <button className={active ? 'nav-btn active' : 'nav-btn'} onClick={onClick}><span>{icon}</span><small>{label}</small></button>
 }
 
+type TrainingQuestion = {
+  scenarioId: ScenarioId
+  hand: string
+  expected: Action
+}
+
 function TrainingPage({ ranges, settings, updateSettings, records, updateRecords }: {
   ranges: RangeStore
   settings: Settings
@@ -229,23 +235,31 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
   const [sessionStarted, setSessionStarted] = useState(false)
   const [index, setIndex] = useState(0)
   const [answer, setAnswer] = useState<Action | null>(null)
-  const [questionSeed, setQuestionSeed] = useState(0)
+  const [question, setQuestion] = useState<TrainingQuestion | null>(null)
 
-  const question = useMemo(() => {
+  const drawQuestion = (): TrainingQuestion | null => {
     if (!pool.length) return null
-    const scenarioId = pool[(index + questionSeed) % pool.length]
+  
+    // 1. 從目前勾選的位置隨機選一個
+    const scenarioId = pool[Math.floor(Math.random() * pool.length)]
+  
+    // 2. 從該位置的 169 種起手牌隨機抽一手
     const range = ranges[scenarioId]!
     const hands = Object.keys(range)
-    const n = Math.abs(hash(`${scenarioId}-${index}-${questionSeed}`)) % hands.length
-    return { scenarioId, hand: hands[n], expected: range[hands[n]] }
-  }, [pool.join(','), ranges, index, questionSeed])
+    const hand = hands[Math.floor(Math.random() * hands.length)]
+  
+    return {
+      scenarioId,
+      hand,
+      expected: range[hand],
+    }
+  }
 
   const start = () => {
-    if (!activeIds.length) return
     updateSettings({ ...settings, firstRunDone: true })
     setIndex(0)
     setAnswer(null)
-    setQuestionSeed(x => x + 1)
+    setQuestion(drawQuestion())
     setSessionStarted(true)
   }
 
@@ -335,7 +349,8 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
       <strong>{correct ? '正確' : '錯誤'}</strong>
       <span>正確策略：{question.expected === 'raise' && scenario.kind === 'defend' ? '3-Bet' : question.expected === 'call' && scenario.kind === 'sb_open' ? 'Limp / Call' : actionText[question.expected]}</span>
     </div>}
-    {answer && <button className="primary wide" onClick={() => { setIndex(i => i + 1); setAnswer(null) }}>繼續</button>}
+    {answer && <button
+  className="primary wide" onClick={() => {setIndex(i => i + 1) setAnswer(null) setQuestion(drawQuestion())}}>繼續</button>}
     <button className="secondary wide" onClick={end}>結束訓練</button>
   </section>
 }
