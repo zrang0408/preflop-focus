@@ -321,7 +321,7 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
 
   const drawQuestion = (): TrainingQuestion | null => {
     if (!pool.length) return null
-  }
+  
     // 1. 從目前勾選的位置隨機選一個
     const scenarioId = pool[Math.floor(Math.random() * pool.length)]
   
@@ -336,7 +336,8 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
       cards: drawCardsForHand(hand),
       expected: range[hand],
     }
-
+  } 
+  
   const start = () => {
     updateSettings({ ...settings, firstRunDone: true })
     setIndex(0)
