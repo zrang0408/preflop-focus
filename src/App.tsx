@@ -193,9 +193,13 @@ function NavButton({ active, label, icon, onClick }: { active: boolean; label: s
 function ScenarioGroup({ title, scenarios, ranges, settings, updateSettings }: { title:string; scenarios:Scenario[]; ranges:RangeStore; settings:Settings; updateSettings:(s:Settings)=>void }) {
   return <div className="scenario-section">
     <div className="scenario-section-title">{title}</div>
-    <div className="scenario-sections">
-      <ScenarioGroup title="Open" scenarios={SCENARIOS.filter(s => s.kind === 'open' || s.kind === 'sb_open')} ranges={ranges} settings={settings} updateSettings={updateSettings} />
-      <ScenarioGroup title="BB 防守" scenarios={SCENARIOS.filter(s => s.kind === 'defend')} ranges={ranges} settings={settings} updateSettings={updateSettings} />
+    <div className="scenario-grid">
+      {scenarios.map(s => {
+        const available = !!ranges[s.id], checked = settings.selected.includes(s.id)
+        return <button key={s.id} disabled={!available} className={`scenario-choice ${checked ? 'selected' : ''} ${!available ? 'disabled' : ''}`} onClick={() => updateSettings({ ...settings, selected: checked ? settings.selected.filter(x => x !== s.id) : [...settings.selected, s.id] })}>
+          <span>{s.name}</span><small>{available ? (checked ? '已選擇' : '可訓練') : '尚未設定範圍'}</small>
+        </button>
+      })}
     </div>
   </div>
 }
@@ -280,17 +284,9 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
       <div className="eyebrow">PREFLOP TRAINER</div>
       <h2>{settings.firstRunDone ? '開始新的訓練' : '訓練設定'}</h2>
       <p className="muted">可同時選擇多個位置。尚未建立範圍的位置不會進入出題。</p>
-      <div className="scenario-grid">
-        {SCENARIOS.map(s => {
-          const available = !!ranges[s.id]
-          const checked = settings.selected.includes(s.id)
-          return <button key={s.id} disabled={!available} className={`scenario-choice ${checked ? 'selected' : ''} ${!available ? 'disabled' : ''}`} onClick={() => {
-            const next = checked ? settings.selected.filter(x => x !== s.id) : [...settings.selected, s.id]
-            updateSettings({ ...settings, selected: next })
-          }}>
-            <span>{s.name}</span><small>{available ? (checked ? '已選擇' : '可訓練') : '尚未設定範圍'}</small>
-          </button>
-        })}
+      <div className="scenario-sections">
+       <ScenarioGroup title="Open" scenarios={SCENARIOS.filter(s => s.kind === 'open' || s.kind === 'sb_open')} ranges={ranges} settings={settings} updateSettings={updateSettings} />
+       <ScenarioGroup title="BB 防守" scenarios={SCENARIOS.filter(s => s.kind === 'defend')} ranges={ranges} settings={settings} updateSettings={updateSettings} />
       </div>
       <div className="panel inline-settings">
         <div><strong>題數</strong><span className="muted">固定題數或無限模式</span></div>
