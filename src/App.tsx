@@ -351,13 +351,13 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
     </div>
     <p className="question-copy">這手牌的翻前策略是？</p>
     <div className="answer-grid">
-      <AnswerButton action="raise" selected={answer} expected={question.expected} onClick={choose} label={scenario.kind === 'defend' ? '3-Bet' : '加注'} />
+      <AnswerButton action="raise" selected={answer} expected={question.expected} onClick={choose} label={scenario.kind === 'defend' ? '加注' : '加注'} />
       {(scenario.kind === 'defend' || scenario.kind === 'sb_open') && <AnswerButton action="call" selected={answer} expected={question.expected} onClick={choose} label={scenario.kind === 'sb_open' ? 'Limp / Call' : '跟注'} />}
       <AnswerButton action="fold" selected={answer} expected={question.expected} onClick={choose} label="棄牌" />
     </div>
     {answer && <div className={correct ? 'feedback correct' : 'feedback wrong'}>
       <strong>{correct ? '正確' : '錯誤'}</strong>
-      <span>正確策略：{question.expected === 'raise' && scenario.kind === 'defend' ? '3-Bet' : question.expected === 'call' && scenario.kind === 'sb_open' ? 'Limp / Call' : actionText[question.expected]}</span>
+      <span>正確策略：{question.expected === 'raise' && scenario.kind === 'defend' ? '加注' : question.expected === 'call' && scenario.kind === 'sb_open' ? 'Limp / Call' : actionText[question.expected]}</span>
     </div>}
     {answer && !correct && <button className="primary wide" onClick={nextQuestion}>繼續</button>}
     <button className="secondary wide" onClick={end}>結束訓練</button>
@@ -405,7 +405,7 @@ function RangesPage({ ranges, updateRanges }: { ranges: RangeStore; updateRanges
     <div className="panel range-heading">
       <div><strong>{scenario.name}</strong><span className="muted">{range ? '已設定' : '尚未設定'}</span></div>
       {!range && <button className="primary compact" onClick={ensure}>建立範圍</button>}
-      {range && <div className="legend"><span className="raise-dot">{scenario.kind === 'defend' ? '3-Bet' : '加注'} {counts.raise}</span>{(scenario.kind === 'defend' || scenario.kind === 'sb_open') && <span className="call-dot">{scenario.kind === 'sb_open' ? 'Limp / Call' : '跟注'} {counts.call}</span>}<span className="fold-dot">棄牌 {counts.fold}</span></div>}
+      {range && <div className="legend"><span className="raise-dot">{scenario.kind === 'defend' ? '加注' : '加注'} {counts.raise}</span>{(scenario.kind === 'defend' || scenario.kind === 'sb_open') && <span className="call-dot">{scenario.kind === 'sb_open' ? 'Limp / Call' : '跟注'} {counts.call}</span>}<span className="fold-dot">棄牌 {counts.fold}</span></div>}
     </div>
     <RangeMatrix range={range || emptyRange()} editing={editing} onCell={cycle} scenario={scenario} />
     {editing && <p className="helper">編輯模式：{scenario.kind === 'defend' ? 'Fold → Call → 3-Bet → Fold' : scenario.kind === 'sb_open' ? 'Fold → Limp / Call → Raise → Fold' : 'Fold → Raise → Fold'}</p>}
@@ -417,7 +417,7 @@ function RangeMatrix({ range, editing, onCell, scenario }: { range: RangeMap; ed
     {RANKS.map((_, r) => RANKS.map((__, c) => {
       const hand = cellName(r, c)
       const action = range[hand] || 'fold'
-      return <button key={hand} disabled={!editing} onClick={() => onCell(hand)} className={`range-cell ${action}`} title={`${hand}: ${action === 'raise' && scenario.kind === 'defend' ? '3-Bet' : actionText[action]}`}>{hand}</button>
+      return <button key={hand} disabled={!editing} onClick={() => onCell(hand)} className={`range-cell ${action}`} title={`${hand}: ${action === 'raise' && scenario.kind === 'defend' ? '加注' : actionText[action]}`}>{hand}</button>
     }))}
   </div></div>
 }
