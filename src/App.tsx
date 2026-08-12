@@ -49,6 +49,7 @@ const SCENARIOS: Scenario[] = [
 
 const actionText: Record<Action, string> = { raise: '加注', call: '跟注', fold: '棄牌' }
 
+//13*13手牌矩陣
 function cellName(row: number, col: number) {
   const a = RANKS[row]
   const b = RANKS[col]
@@ -57,12 +58,14 @@ function cellName(row: number, col: number) {
   return `${b}${a}o`
 }
 
+//將13*13手牌矩陣預設成fold
 function emptyRange(): RangeMap {
   const out: RangeMap = {}
   for (let r = 0; r < 13; r++) for (let c = 0; c < 13; c++) out[cellName(r, c)] = 'fold'
   return out
 }
 
+//把手牌縮寫展開成手牌陣列
 function expandToken(token: string): string[] {
   token = token.trim()
   if (!token) return []
@@ -84,6 +87,7 @@ function expandToken(token: string): string[] {
   return RANKS.slice(Math.min(s, e), Math.max(s, e) + 1).map(x => `${first}${x}${suffix}`)
 }
 
+//先全部fold 再把指定手牌改成raise或call
 function rangeFromLists(raiseTokens: string[], callTokens: string[]): RangeMap {
   const out = emptyRange()
   for (const t of raiseTokens.flatMap(expandToken)) if (t in out) out[t] = 'raise'
@@ -91,6 +95,7 @@ function rangeFromLists(raiseTokens: string[], callTokens: string[]): RangeMap {
   return out
 }
 
+//預設各位置手牌範圍
 const DEFAULT_UTG_OPEN = rangeFromLists(['AA-77', 'AKs-A2s', 'KQs-K5s', 'QJs-Q9s', 'JTs', 'AKo-ATo', 'KQo-KTo'],[],)
 const DEFAULT_HJ_OPEN = rangeFromLists(['AA-66', 'AKs-A2s', 'KQs-K4s', 'QJs-Q8s', 'JTs', 'AKo-A9o', 'A5o', 'KQo-KTo', 'QJo'],[],)
 const DEFAULT_CO_OPEN = rangeFromLists(['AA-44', 'AKs-A2s', 'KQs-K2s', 'QJs-Q8s', 'JTs-J8s', 'T9s', '98s', 'AKo-A7o', 'A5o', 'KQo-KTo', 'QJo-QTo', 'JTo'],[],)
@@ -126,6 +131,7 @@ const DEFAULT_BB_VS_SB = rangeFromLists(  ['AA-99', 'AKs-AJs', 'A5s-A4s', 'KQs-K
   BB_VS_SB: DEFAULT_BB_VS_SB,
 }
 
+//從瀏覽器讀資料，再轉回物件、陣列資料
 function readJSON<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key)
@@ -135,10 +141,12 @@ function readJSON<T>(key: string, fallback: T): T {
   }
 }
 
+//把資料轉成 JSON 文字後，儲存到瀏覽器
 function writeJSON(key: string, value: unknown) {
   localStorage.setItem(key, JSON.stringify(value))
 }
 
+//建立整個程式的主要狀態，包括目前頁面、手牌範圍、訓練紀錄、設定
 function App() {
   const [page, setPage] = useState<Page>('train')
   const [ranges, setRanges] = useState<RangeStore>(() => ({ ...DEFAULT_RANGES, ...readJSON<RangeStore>('pf_ranges_v1', {}) }))
@@ -185,6 +193,7 @@ function App() {
   )
 }
 
+//建立一個可以重複使用的導覽按鈕元件
 function NavButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: string; onClick: () => void }) {
   return <button className={active ? 'nav-btn active' : 'nav-btn'} onClick={onClick}><span>{icon}</span><small>{label}</small></button>
 }
@@ -284,6 +293,7 @@ function PlayingCardView({
   )
 }
 
+//建立一個 6-Max 撲克桌位置圖，並標示 Hero 和 Open 的玩家位置
 function PositionTable({ scenario }: { scenario: Scenario }) {
   const hero = scenario.kind === 'defend' ? 'BB' : scenario.id.split('_')[0]
   const opener = scenario.kind === 'defend' ? scenario.id.split('_').pop() || '' : ''
@@ -305,6 +315,7 @@ function PositionTable({ scenario }: { scenario: Scenario }) {
   </div>
 }
 
+//訓練頁面
 function TrainingPage({ ranges, settings, updateSettings, records, updateRecords }: {
   ranges: RangeStore
   settings: Settings
@@ -337,7 +348,7 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
       expected: range[hand],
     }
   } 
-  
+
   const start = () => {
     updateSettings({ ...settings, firstRunDone: true })
     setIndex(0)
@@ -457,6 +468,7 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
   </section>
 }
 
+//建立訓練頁面的作答按鈕，並在作答後顯示答對或答錯
 function AnswerButton({ action, selected, expected, onClick, label }: { action: Action; selected: Action | null; expected: Action; onClick: (a: Action) => void; label: string }) {
   let cls = `answer-btn ${action}`
   if (selected) {
@@ -466,6 +478,7 @@ function AnswerButton({ action, selected, expected, onClick, label }: { action: 
   return <button className={cls} onClick={() => onClick(action)}>{label}</button>
 }
 
+//翻前範圍編輯器頁面
 function RangesPage({ ranges, updateRanges }: { ranges: RangeStore; updateRanges: (r: RangeStore) => void }) {
   const [scenarioId, setScenarioId] = useState<ScenarioId>('BB_VS_UTG')
   const scenario = SCENARIOS.find(s => s.id === scenarioId)!
@@ -505,6 +518,7 @@ function RangesPage({ ranges, updateRanges }: { ranges: RangeStore; updateRanges
   </section>
 }
 
+//手牌範圍顯示成 13×13 的矩陣，並在編輯模式下讓使用者點擊修改策略
 function RangeMatrix({ range, editing, onCell, scenario }: { range: RangeMap; editing: boolean; onCell: (h: string) => void; scenario: Scenario }) {
   return <div className="matrix-wrap"><div className="range-matrix">
     {RANKS.map((_, r) => RANKS.map((__, c) => {
@@ -515,6 +529,7 @@ function RangeMatrix({ range, editing, onCell, scenario }: { range: RangeMap; ed
   </div></div>
 }
 
+//建立「訓練紀錄頁面」，顯示答題統計、全部紀錄、錯題紀錄，並可刪除單筆紀錄
 function RecordsPage({ records, updateRecords }: { records: TrainingRecord[]; updateRecords: (r: TrainingRecord[]) => void }) {
   const [tab, setTab] = useState<'all' | 'wrong'>('all')
   const shown = tab === 'all' ? records : records.filter(r => !r.correct)
@@ -543,6 +558,7 @@ function RecordsPage({ records, updateRecords }: { records: TrainingRecord[]; up
   </section>
 }
 
+//建立 App 的設定頁面，顯示固定遊戲設定，並提供資料清除與重設功能
 function SettingsPage({ settings, updateSettings, ranges, updateRanges, records, updateRecords }: {
   settings: Settings; updateSettings: (s: Settings) => void; ranges: RangeStore; updateRanges: (r: RangeStore) => void; records: TrainingRecord[]; updateRecords: (r: TrainingRecord[]) => void
 }) {
@@ -560,14 +576,17 @@ function SettingsPage({ settings, updateSettings, ranges, updateRanges, records,
   </section>
 }
 
+//建立一個顯示「名稱 + 數值」的小型統計元件
 function Metric({ label, value }: { label: string; value: string }) {
   return <div className="metric"><span>{label}</span><strong>{value}</strong></div>
 }
 
+//把文字轉成一個固定的數字
 function hash(str: string) {
   let h = 0
   for (let i = 0; i < str.length; i++) h = ((h << 5) - h + str.charCodeAt(i)) | 0
   return h
 }
 
+//把 App 提供給其他檔案使用，而且它是這個檔案的主要輸出
 export default App
