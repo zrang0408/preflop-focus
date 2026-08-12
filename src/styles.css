@@ -24,7 +24,10 @@ h2 { margin: 0 0 8px; font-size: clamp(26px, 8vw, 38px); letter-spacing: -.045em
 h3 { font-size: 15px; }
 .muted { color: #858d9b; font-size: 13px; line-height: 1.5; }
 .panel { background: #10141b; border: 1px solid #222833; border-radius: 16px; }
-.scenario-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; margin: 22px 0; }
+.scenario-sections { display:grid; gap:20px; margin:22px 0; }
+.scenario-section { display:grid; gap:10px; }
+.scenario-section-title { color:#cfd5dc; font-size:12px; font-weight:800; letter-spacing:.04em; }
+.scenario-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; margin:0; }
 .scenario-choice { border: 1px solid #252b35; background: #10141b; border-radius: 14px; padding: 13px; text-align: left; display: flex; flex-direction: column; gap: 5px; min-height: 66px; }
 .scenario-choice span { font-size: 13px; font-weight: 750; }
 .scenario-choice small { color: #6f7785; font-size: 10px; }

@@ -189,6 +189,16 @@ function NavButton({ active, label, icon, onClick }: { active: boolean; label: s
   return <button className={active ? 'nav-btn active' : 'nav-btn'} onClick={onClick}><span>{icon}</span><small>{label}</small></button>
 }
 
+function ScenarioGroup({ title, scenarios, ranges, settings, updateSettings }: { title: string; scenarios: Scenario[]; ranges: RangeStore; settings: Settings; updateSettings: (s: Settings) => void }) {
+  return <div className="scenario-section">
+    <div className="scenario-section-title">{title}</div>
+    <div className="scenario-sections">
+      <ScenarioGroup title="Open" scenarios={SCENARIOS.filter(s => s.kind === 'open' || s.kind === 'sb_open')} ranges={ranges} settings={settings} updateSettings={updateSettings} />
+      <ScenarioGroup title="BB 防守" scenarios={SCENARIOS.filter(s => s.kind === 'defend')} ranges={ranges} settings={settings} updateSettings={updateSettings} />
+    </div>
+  </div>
+}
+
 type TrainingQuestion = {
   scenarioId: ScenarioId
   hand: string
