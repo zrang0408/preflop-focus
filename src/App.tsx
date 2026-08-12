@@ -189,6 +189,7 @@ function NavButton({ active, label, icon, onClick }: { active: boolean; label: s
   return <button className={active ? 'nav-btn active' : 'nav-btn'} onClick={onClick}><span>{icon}</span><small>{label}</small></button>
 }
 
+//訓練設定位置分組
 function ScenarioGroup({ title, scenarios, ranges, settings, updateSettings }: { title: string; scenarios: Scenario[]; ranges: RangeStore; settings: Settings; updateSettings: (s: Settings) => void }) {
   return <div className="scenario-section">
     <div className="scenario-section-title">{title}</div>
