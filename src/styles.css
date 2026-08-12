@@ -209,9 +209,9 @@ h3 { font-size: 15px; }
     font-size:10px
   }
 
-  /* 位置圖縮小 */
+  /* 位置圖 */
   .training-card-page .position-table{
-    width:230px;
+    width:260px;
     gap:3px;
     margin:0 auto 3px
   }
@@ -230,7 +230,7 @@ h3 { font-size: 15px; }
     font-size:6px
   }
 
-  /* 手牌框使用剩餘空間 */
+  /* 手牌框 */
   .training-card-page .hand-card{
     width:min(74vw,260px);
     min-height:0;
@@ -246,7 +246,7 @@ h3 { font-size: 15px; }
     margin:5px 0
   }
 
-  /* 手牌：比例不變，只放大寬度 */
+  /* 手牌 */
   .training-card-page .playing-card{
     width:clamp(82px,14dvh,112px) !important;
     aspect-ratio:.72;
@@ -274,7 +274,7 @@ h3 { font-size: 15px; }
     padding:3px 6px
   }
 
-  /* 問題與作答區壓縮 */
+  /* 問題與作答區 */
   .training-card-page .question-copy{
     margin:2px 0;
     font-size:11px
@@ -304,7 +304,7 @@ h3 { font-size: 15px; }
     font-size:12px
   }
 
-  /* 關鍵：永遠把結束訓練推到下方選單正上方 */
+  /* 永遠把結束訓練推到下方選單正上方 */
   .training-card-page > .secondary.wide:last-child{
     margin-top:auto !important;
     margin-bottom:0
