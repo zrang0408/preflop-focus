@@ -92,13 +92,9 @@ function rangeFromLists(raiseTokens: string[], callTokens: string[]): RangeMap {
 }
 
 const DEFAULT_UTG_OPEN = rangeFromLists(['AA-77', 'AKs-A2s', 'KQs-K5s', 'QJs-Q9s', 'JTs', 'AKo-ATo', 'KQo-KTo'],[],)
-
 const DEFAULT_HJ_OPEN = rangeFromLists(['AA-66', 'AKs-A2s', 'KQs-K4s', 'QJs-Q8s', 'JTs', 'AKo-A9o', 'A5o', 'KQo-KTo', 'QJo'],[],)
-
 const DEFAULT_CO_OPEN = rangeFromLists(['AA-44', 'AKs-A2s', 'KQs-K2s', 'QJs-Q8s', 'JTs-J8s', 'T9s', '98s', 'AKo-A7o', 'A5o', 'KQo-KTo', 'QJo-QTo', 'JTo'],[],)
-
 const DEFAULT_BTN_OPEN = rangeFromLists(['AA-33', 'AKs-A2s', 'KQs-K2s', 'QJs-Q3s', 'JTs-J5s', 'T9s-T6s', '98s-97s', '87s-86s', '76s', '65s', 'AKo-A3o', 'KQo-K8o', 'QJo-Q9o', 'JTo-J9o', 'T9o'],[],)
-
 const DEFAULT_SB_OPEN = rangeFromLists(['AA-KK', 'QQ', 'JJ', 'TT', '99', '44-22', 'AKs-A9s', 'A5s', 'A2s', 'KQs-KTs', 'K7s-K2s', 'QJs', 'Q8s-Q2s', 'J8s-J4s', 'T8s-T6s', '98s-96s', '87s-85s', '76s-75s', '65s-64s', '54s', 'AKo-A3o', 'KQo-K8o', 'QJo-Q9o', 'JTo-J9o', 'T9o', '98o'],
   ['88', '77', '66', '55', 'A8s-A6s', 'A4s-A3s', 'K9s-K8s', 'QTs-Q9s', 'JTs-J9s', 'T9s', 'T5s', '95s', '74s', '53s', 'A2o', 'K7o', 'Q8o'],)
 
@@ -117,7 +113,7 @@ const DEFAULT_BB_VS_BTN = rangeFromLists(  ['AA-TT', 'AKs-AQs', 'KQs', 'K3s-K2s'
 const DEFAULT_BB_VS_SB = rangeFromLists(  ['AA-99', 'AKs-AJs', 'A5s-A4s', 'KQs-KJs', 'QJs', 'Q3s-Q2s', 'J6s-J4s', 'T9s', '65s', '54s', 'AKo-AQo', 'A7o-A6o', 'A4o-A2o', 'K9o-K8o', 'Q9o'],
   ['88-22', 'ATs-A6s', 'A3s-A2s', 'KTs-K2s', 'QTs-Q4s', 'JTs-J7s', 'T8s-T6s', '98s-96s', '87s-85s', '76s-74s', '64s', '53s', '43s', 'AJo-A8o', 'A5o', 'KQo-KTo', 'QJo-QTo', 'JTo', 'T9o'],)
 
-const DEFAULT_RANGES: RangeStore = {
+  const DEFAULT_RANGES: RangeStore = {
   UTG_OPEN: DEFAULT_UTG_OPEN,
   HJ_OPEN: DEFAULT_HJ_OPEN,
   CO_OPEN: DEFAULT_CO_OPEN,
@@ -202,7 +198,7 @@ type TrainingQuestion = {
 const SEATS = ['UTG', 'HJ', 'CO', 'BTN', 'SB', 'BB']
 
 function PositionTable({ scenario }: { scenario: Scenario }) {
-  const hero = scenario.kind === 'open' ? scenario.id.split('_')[0] : 'BB'
+  const hero = scenario.kind === 'defend' ? 'BB' : scenario.id.split('_')[0]
   const opener = scenario.kind === 'defend' ? scenario.id.split('_').pop() || '' : ''
 
   return <div className="position-table">
