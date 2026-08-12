@@ -204,13 +204,85 @@ function ScenarioGroup({ title, scenarios, ranges, settings, updateSettings }: {
   </div>
 }
 
+type Suit = '♠' | '♥' | '♦' | '♣'
+
+type PlayingCard = {
+  rank: string
+  suit: Suit
+}
+
 type TrainingQuestion = {
   scenarioId: ScenarioId
   hand: string
+  cards: [PlayingCard, PlayingCard]
   expected: Action
 }
 
+const SUITS: Suit[] = ['♠', '♥', '♦', '♣']
 const SEATS = ['UTG', 'HJ', 'CO', 'BTN', 'SB', 'BB']
+
+//產生兩張實際牌
+function drawCardsForHand(hand: string): [PlayingCard, PlayingCard] {
+  const match = hand.match(/^([AKQJT2-9])([AKQJT2-9])([so])?$/)
+
+  if (!match) {
+    return [
+      { rank: '?', suit: '♠' },
+      { rank: '?', suit: '♥' },
+    ]
+  }
+
+  const [, firstRank, secondRank, suitedness] = match
+
+  const firstSuit =
+    SUITS[Math.floor(Math.random() * SUITS.length)]
+
+  // 同花牌，例如 AKs
+  if (suitedness === 's') {
+    return [
+      { rank: firstRank, suit: firstSuit },
+      { rank: secondRank, suit: firstSuit },
+    ]
+  }
+
+  // 非同花牌以及口袋對
+  const otherSuits =
+    SUITS.filter(suit => suit !== firstSuit)
+
+  const secondSuit =
+    otherSuits[Math.floor(Math.random() * otherSuits.length)]
+
+  return [
+    { rank: firstRank, suit: firstSuit },
+    { rank: secondRank, suit: secondSuit },
+  ]
+}
+
+//新增單張撲克牌元件
+function PlayingCardView({
+  card,
+}: {
+  card: PlayingCard
+}) {
+  const red =
+    card.suit === '♥' ||
+    card.suit === '♦'
+
+  return (
+    <div
+      className={`playing-card ${red ? 'red' : 'black'}`}
+      aria-label={`${card.rank}${card.suit}`}
+    >
+      <span className="playing-card-rank">
+        {card.rank}
+      </span>
+
+      <span className="playing-card-suit">
+        {card.suit}
+      </span>
+    </div>
+  )
+}
 
 function PositionTable({ scenario }: { scenario: Scenario }) {
   const hero = scenario.kind === 'defend' ? 'BB' : scenario.id.split('_')[0]
@@ -261,9 +333,9 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
     return {
       scenarioId,
       hand,
+      cards: drawCardsForHand(hand),
       expected: range[hand],
     }
-  }
 
   const start = () => {
     updateSettings({ ...settings, firstRunDone: true })
@@ -353,9 +425,22 @@ function TrainingPage({ ranges, settings, updateSettings, records, updateRecords
     <PositionTable scenario={scenario} />
     <div className="hand-card">
       <small>HERO HAND</small>
-      <div className="hand-name">{question.hand}</div>
-      <div className="position-badge">{scenario.short}</div>
-    </div>
+
+      <div className="hole-cards">
+        <PlayingCardView card={question.cards[0]} />
+        <PlayingCardView card={question.cards[1]} />
+      </div>
+
+  <div className="hand-meta">
+    <span className="hand-name">
+      {question.hand}
+    </span>
+
+    <span className="position-badge">
+      {scenario.short}
+    </span>
+  </div>
+</div>
     <p className="question-copy">這手牌的翻前策略是？</p>
     <div className="answer-grid">
       <AnswerButton action="raise" selected={answer} expected={question.expected} onClick={choose} label={scenario.kind === 'defend' ? '加注' : '加注'} />
