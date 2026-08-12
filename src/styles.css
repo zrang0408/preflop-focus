@@ -173,3 +173,60 @@ h3 { font-size: 15px; }
   margin:0;
   color:#d5d9df
 }
+
+/* 手機版訓練：
+   1. 整個訓練畫面固定在一個螢幕內
+   2. 禁止上下捲動
+   3. 縮小位置圖、手牌與按鈕間距
+*/
+@media(max-width:699px){
+  .app-shell:has(.training-card-page){
+    position:fixed;inset:0;width:100%;height:100dvh;min-height:100dvh;
+    padding-bottom:0;overflow:hidden;overscroll-behavior:none
+  }
+
+  .app-shell:has(.training-card-page) main{
+    height:calc(100dvh - 128px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    overflow:hidden
+  }
+
+  .training-card-page{
+    height:100%;padding:8px 14px 6px;overflow:hidden;
+    display:flex;flex-direction:column
+  }
+
+  .training-progress{margin-bottom:4px;font-size:10px;line-height:1.2}
+
+  .training-card-page .position-table{
+    width:min(76vw,270px);max-width:270px;gap:3px;margin:0 auto 4px
+  }
+
+  .training-card-page .table-center{
+    height:44px;border-width:1px;font-size:8px
+  }
+
+  .training-card-page .seat{
+    height:28px;border-radius:7px;font-size:9px;line-height:1
+  }
+
+  .training-card-page .seat small{font-size:6px}
+
+  .training-card-page .hand-card{
+    width:min(48vw,170px);min-height:120px;margin:2px auto 4px;
+    padding:8px 10px;border-radius:18px;box-shadow:0 10px 28px rgba(0,0,0,.28)
+  }
+
+  .training-card-page .hand-card small{font-size:7px;letter-spacing:.12em}
+  .training-card-page .hole-cards{gap:6px;margin:4px 0 5px}
+  .training-card-page .playing-card{width:52px;border-radius:8px;padding:6px 7px}
+  .training-card-page .playing-card-rank{font-size:25px}
+  .training-card-page .playing-card-suit{font-size:27px}
+  .training-card-page .hand-meta{gap:6px}
+  .training-card-page .hand-meta .hand-name{font-size:13px}
+  .training-card-page .position-badge{font-size:8px;padding:3px 6px}
+  .training-card-page .question-copy{margin:2px 0 0;font-size:11px;line-height:1.2}
+  .training-card-page .answer-grid{gap:6px;margin:6px 0 3px}
+  .training-card-page .answer-btn{min-height:42px;border-radius:10px;font-size:12px}
+  .training-card-page .feedback{margin:3px 0;padding:7px 9px;border-radius:9px;font-size:10px}
+  .training-card-page .wide{margin-top:3px;padding:9px 12px;border-radius:10px;font-size:12px}
+}
