@@ -180,9 +180,14 @@ h3 { font-size: 15px; }
    3. 縮小位置圖、手牌與按鈕間距
 */
 @media(max-width:699px){
+
+  /* 訓練時鎖定整個畫面 */
   .app-shell:has(.training-card-page){
-    position:fixed;inset:0;width:100%;height:100dvh;min-height:100dvh;
-    padding-bottom:0;overflow:hidden;overscroll-behavior:none
+    position:fixed;
+    inset:0;
+    height:100dvh;
+    padding-bottom:0;
+    overflow:hidden
   }
 
   .app-shell:has(.training-card-page) main{
@@ -191,76 +196,113 @@ h3 { font-size: 15px; }
   }
 
   .training-card-page{
-    height:100%;padding:6px 14px;overflow:hidden;
-    display:flex;flex-direction:column
+    height:100%;
+    padding:5px 14px;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden
   }
 
-  .training-progress{margin-bottom:3px;font-size:10px;line-height:1.2}
+  /* 上方資訊 */
+  .training-progress{
+    margin-bottom:2px;
+    font-size:10px
+  }
 
+  /* 位置圖縮小 */
   .training-card-page .position-table{
-    width:min(72vw,250px);gap:3px;margin:0 auto 3px
+    width:230px;
+    gap:3px;
+    margin:0 auto 3px
   }
 
-  .training-card-page .table-center{height:40px;border-width:1px;font-size:8px}
-  .training-card-page .seat{height:26px;border-radius:7px;font-size:9px;line-height:1}
-  .training-card-page .seat small{font-size:6px}
+  .training-card-page .table-center{
+    height:38px;
+    font-size:8px
+  }
 
-  /* 手牌區自動吃掉剩餘空間 */
+  .training-card-page .seat{
+    height:25px;
+    font-size:9px
+  }
+
+  .training-card-page .seat small{
+    font-size:6px
+  }
+
+  /* 手牌框使用剩餘空間 */
   .training-card-page .hand-card{
-    width:min(62vw,220px);
+    width:min(74vw,260px);
     min-height:0;
+    max-height:none;
     flex:1 1 auto;
-    max-height:210px;
-    margin:2px auto 3px;
-    padding:7px 10px;
-    border-radius:18px
+    margin:2px auto 4px;
+    padding:8px;
+    border-radius:20px
   }
 
-  .training-card-page .hand-card small{font-size:7px}
-  .training-card-page .hole-cards{gap:7px;margin:5px 0}
+  .training-card-page .hole-cards{
+    gap:8px;
+    margin:5px 0
+  }
 
-  /* 放大實際手牌 */
+  /* 真正放大兩張手牌 */
   .training-card-page .playing-card{
-    width:clamp(58px,18vw,76px);
-    border-radius:9px;
-    padding:7px 8px
+    width:clamp(72px,11dvh,100px) !important;
+    padding:8px 9px
   }
 
   .training-card-page .playing-card-rank{
-    font-size:clamp(27px,8vw,34px)
+    font-size:clamp(31px,5.5dvh,43px)
   }
 
   .training-card-page .playing-card-suit{
-    font-size:clamp(29px,9vw,37px)
+    font-size:clamp(34px,6dvh,47px)
   }
 
-  .training-card-page .hand-meta{gap:6px}
-  .training-card-page .hand-meta .hand-name{font-size:13px}
-  .training-card-page .position-badge{font-size:8px;padding:3px 6px}
+  .training-card-page .hand-card small{
+    font-size:7px
+  }
 
+  .training-card-page .hand-meta .hand-name{
+    font-size:13px
+  }
+
+  .training-card-page .position-badge{
+    font-size:8px;
+    padding:3px 6px
+  }
+
+  /* 問題與作答區壓縮 */
   .training-card-page .question-copy{
-    margin:2px 0;font-size:11px;line-height:1.2
+    margin:2px 0;
+    font-size:11px
   }
 
   .training-card-page .answer-grid{
-    gap:6px;margin:5px 0 2px
+    gap:5px;
+    margin:4px 0
   }
 
   .training-card-page .answer-btn{
-    min-height:40px;border-radius:10px;font-size:12px
+    min-height:40px;
+    font-size:12px
   }
 
   .training-card-page .feedback{
-    margin:2px 0;padding:6px 9px;border-radius:9px;font-size:10px
+    margin:2px 0;
+    padding:6px 8px;
+    font-size:10px
   }
 
   .training-card-page .wide{
-    margin-top:3px;padding:8px 12px;border-radius:10px;font-size:12px
+    padding:8px 12px;
+    font-size:12px
   }
 
-  /* 結束訓練永遠靠近底部選單上方 */
-  .training-card-page>.secondary.wide:last-child{
-    margin-top:3px;
-    flex:0 0 auto
+  /* 關鍵：永遠把結束訓練推到下方選單正上方 */
+  .training-card-page > .secondary.wide:last-child{
+    margin-top:auto !important;
+    margin-bottom:0
   }
 }
