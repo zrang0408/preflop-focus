@@ -106,7 +106,7 @@ const DEFAULT_SB_OPEN = rangeFromLists(['AA-KK', 'QQ', 'JJ', 'TT', '99-22', 'AKs
 const DEFAULT_BB_VS_UTG = rangeFromLists(['AA-KK', 'AKs', 'A6s', 'A4s-A2s', 'K6s-K5s', 'AKo'],
   ['QQ-22', 'AQs-A7s', 'A5s', 'KQs-K7s', 'QJs-Q9s', 'JTs-J9s', 'T9s-T8s', '98s-97s', '87s-86s', '76s-75s', '65s-64s', '54s-53s', '43s', 'AQo-ATo', 'KQo-KJo'],)
 
-const DEFAULT_BB_VS_HJ = rangeFromLists(['AA-QQ', 'AKs', 'A3s-A2s', 'K5s-K2s', 'Q8s-Q7s', 'AKo'],
+const DEFAULT_BB_VS_HJ = rangeFromLists(['AA-QQ', 'AKs', 'A3s-A2s', 'K6s-K2s', 'Q8s-Q7s', 'AKo'],
   ['JJ-22', 'AQs-A4s', 'KQs-K7s', 'QJs-Q9s', 'JTs-J8s', 'T9s-T7s', '98s-97s', '87s-86s', '76s-75s', '65s-64s', '54s-53s', '43s', 'AQo-ATo', 'KQo-KJo', 'QJo'],)
 
 const DEFAULT_BB_VS_CO = rangeFromLists(['AA-JJ', 'AKs', 'K3s-K2s', 'Q7s-Q6s', 'J7s', 'AKo', 'A5o', 'KJo', 'QJo'],
