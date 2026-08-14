@@ -173,7 +173,6 @@ function App() {
             <p>6-Max · 100BB · 極速現金桌</p>
           </div>
         </div>
-        <span className="pool-pill">Unknown Pool</span>
       </header>
 
       <main>
